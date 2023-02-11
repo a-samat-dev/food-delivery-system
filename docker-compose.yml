@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  postgresql:
+    container_name: postgresql
+    image: postgres:14.1-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - food-delivery-system
+    restart: always
+  food-delivery-system:
+    container_name: food-delivery-system
+    image: food-delivery-system-img
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - DB_URL=jdbc:postgresql://postgresql:5432/postgres
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - TICKET_CREATION_JOB_PERIOD=0 * * * * *
+      - SECURITY_USERNAME=admin
+      - SECURITY_PASSWORD=admin
+    depends_on:
+      - postgresql
+    ports:
+      - "8080:8080"
+    volumes:
+      - pgdata:/var/lib/postgres/data/
+    networks:
+      - food-delivery-system
+    restart: always
+
+networks:
+  food-delivery-system:
+    driver: bridge
+volumes:
+  pgdata:
